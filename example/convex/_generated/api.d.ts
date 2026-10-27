@@ -59,7 +59,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  evalbench: import("convex-evalbench/_generated/component.js").ComponentApi<"evalbench">;
+  evalbench: import("@smart-code-solutions/convex-evalbench/_generated/component.js").ComponentApi<"evalbench">;
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
   aiBudget: import("@convex-dev/ai-budget/_generated/component.js").ComponentApi<"aiBudget">;
 };

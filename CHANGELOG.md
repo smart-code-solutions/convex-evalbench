@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0-alpha.0 (2026-10-27)
+
+- First scoped Smart Code Solutions fork release, preserving upstream attribution.
+- Refresh Convex/AI SDK dependencies and verify SDK 6/7 adapters.
+- Add strict task/attempt accounting, late receipts, bounded reactive summaries and
+  a sibling AI Budget transaction example.
+- Production accounting remains an alpha for synthetic data: retention/deletion
+  and late-write fencing are not implemented.
+
 ## [0.3.0](https://github.com/tfohlmeister/convex-evalbench/compare/v0.2.0...v0.3.0) (2026-07-07)
 
 

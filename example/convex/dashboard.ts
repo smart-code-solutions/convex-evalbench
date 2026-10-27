@@ -1,4 +1,4 @@
-import { Evalbench, datasetItemInputValidator } from "convex-evalbench";
+import { Evalbench, datasetItemInputValidator } from "@smart-code-solutions/convex-evalbench";
 import { v } from "convex/values";
 
 import { components } from "./_generated/api.js";

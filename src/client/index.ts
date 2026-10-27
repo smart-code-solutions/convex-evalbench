@@ -186,7 +186,7 @@ async function resolveScorerHandles(
  * manual host instrumentation all funnel through `recordSpan`.
  *
  * ```ts
- * import { Evalbench } from "convex-evalbench";
+ * import { Evalbench } from "@smart-code-solutions/convex-evalbench";
  * import { components } from "./_generated/api.js";
  *
  * const evalbench = new Evalbench(components.evalbench);

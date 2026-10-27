@@ -1,7 +1,7 @@
 import agent from "@convex-dev/agent/convex.config";
 import aiBudget from "@convex-dev/ai-budget/convex.config";
 import { defineApp } from "convex/server";
-import evalbench from "convex-evalbench/convex.config";
+import evalbench from "@smart-code-solutions/convex-evalbench/convex.config";
 
 const app = defineApp();
 app.use(evalbench);

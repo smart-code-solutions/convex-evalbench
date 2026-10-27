@@ -1,24 +1,25 @@
 {
-  "name": "convex-evalbench",
-  "version": "0.3.0",
+  "name": "@smart-code-solutions/convex-evalbench",
+  "version": "0.4.0-alpha.0",
   "description": "Reactive LLM eval, tracing, and regression layer as a Convex component.",
   "type": "module",
   "license": "Apache-2.0",
   "author": "Thorben Fohlmeister <thorben@fohlmeister.com>",
-  "homepage": "https://github.com/tfohlmeister/convex-evalbench#readme",
+  "homepage": "https://github.com/smart-code-solutions/convex-evalbench#readme",
   "bugs": {
-    "url": "https://github.com/tfohlmeister/convex-evalbench/issues"
+    "url": "https://github.com/smart-code-solutions/convex-evalbench/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tfohlmeister/convex-evalbench.git"
+    "url": "git+https://github.com/smart-code-solutions/convex-evalbench.git"
   },
   "packageManager": "pnpm@10.30.0",
   "files": [
     "dist",
     "src",
     "!src/**/*.test.ts",
-    "!src/**/setup.test.ts"
+    "!src/**/setup.test.ts",
+    "patches"
   ],
   "exports": {
     "./package.json": "./package.json",
@@ -70,7 +71,8 @@
     "test:watch": "vitest --typecheck --clearScreen false",
     "check": "pnpm run build:codegen && pnpm run typecheck && pnpm run test && pnpm run lint && pnpm run check:dashboard",
     "preversion": "pnpm install --frozen-lockfile && pnpm run build:clean && pnpm run test && pnpm run typecheck && pnpm run lint",
-    "version": "prettier -w CHANGELOG.md && git add CHANGELOG.md"
+    "version": "prettier -w CHANGELOG.md && git add CHANGELOG.md",
+    "prepack": "pnpm run build"
   },
   "keywords": [
     "convex",
@@ -125,5 +127,12 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "contributors": [
+    "Smart Code Solutions"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
   }
 }

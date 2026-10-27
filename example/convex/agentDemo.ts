@@ -1,7 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { Agent } from "@convex-dev/agent";
-import { Evalbench } from "convex-evalbench";
-import { withEvalbench } from "convex-evalbench/agent";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
+import { withEvalbench } from "@smart-code-solutions/convex-evalbench/agent";
 import { v } from "convex/values";
 
 import { components } from "./_generated/api.js";

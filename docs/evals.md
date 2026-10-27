@@ -132,7 +132,7 @@ validators enforce the scorer contract
 
 ```ts
 import { action } from "./_generated/server.js";
-import { defineScorer } from "convex-evalbench";
+import { defineScorer } from "@smart-code-solutions/convex-evalbench";
 
 export const politeness = action(
   defineScorer(async (ctx, args) => {
@@ -156,7 +156,7 @@ your app:
 ```ts
 import { generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
-import { defineScorer, llmAsJudge } from "convex-evalbench";
+import { defineScorer, llmAsJudge } from "@smart-code-solutions/convex-evalbench";
 
 export const politeJudge = action(
   defineScorer(
@@ -233,7 +233,7 @@ throw is recorded as an `error` on the first attempt. To have the runner
 retry instead, the target throws a **retryable** error:
 
 ```ts
-import { retryableError } from "convex-evalbench";
+import { retryableError } from "@smart-code-solutions/convex-evalbench";
 
 export const myTarget = action({
   args: { input: v.any(), runId: v.string(), itemId: v.string() },

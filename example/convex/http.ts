@@ -1,5 +1,5 @@
-import { Evalbench } from "convex-evalbench";
-import { otlpTraceHandler } from "convex-evalbench/otlp";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
+import { otlpTraceHandler } from "@smart-code-solutions/convex-evalbench/otlp";
 import { httpRouter } from "convex/server";
 
 import { components } from "./_generated/api.js";

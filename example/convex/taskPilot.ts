@@ -5,7 +5,7 @@ import {
   attemptReceipt,
   productionSummary,
   taskOutcome,
-} from "convex-evalbench";
+} from "@smart-code-solutions/convex-evalbench";
 import { components } from "./_generated/api.js";
 import { internalMutation, internalQuery, query } from "./_generated/server.js";
 

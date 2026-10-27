@@ -1,36 +1,32 @@
 # Production task accounting pilot
 
-This unpublished fork adds strict accounting beside Evalbench's best-effort
-traces and evaluation batches. **The upstream npm package does not contain it.**
+This scoped alpha adds strict accounting beside Evalbench's best-effort
+traces and evaluation batches. **The upstream unscoped npm package does not contain it.**
 
 ## Install and configure
 
-Build the fork with Node 22+:
+Use Node 22+ and install the scoped prerelease:
 
 ```sh
-corepack pnpm install --frozen-lockfile
-corepack pnpm build
-corepack pnpm pack --out ../convex-evalbench-pilot.tgz
+npm install @smart-code-solutions/convex-evalbench@0.4.0-alpha.0
 ```
 
-Install that tarball in your app using its package manager:
-
-```sh
-bun add /absolute/path/to/convex-evalbench-pilot.tgz
-```
+The package includes the Convex component and server SDK. No separate service or
+UI package is required; expose authenticated host queries for your own UI.
+For local development, build and pack this repository with `corepack pnpm pack`.
 
 Add the component beside the application's existing AI Budget instance:
 
 ```ts
 // convex/convex.config.ts — keep your existing app and app.use(aiBudget).
-import evalbench from "convex-evalbench/convex.config";
+import evalbench from "@smart-code-solutions/convex-evalbench/convex.config";
 app.use(evalbench);
 ```
 
 Run the app's usual isolated Convex setup/codegen, then construct the client:
 
 ```ts
-import { Evalbench } from "convex-evalbench";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
 import { components } from "./_generated/api";
 const tasks = new Evalbench(components.evalbench).production;
 ```
@@ -116,7 +112,7 @@ BoardSense's `currentUserCanManageCommunity` or EasyGov's existing account polic
 Never expose a client-supplied tenant without membership checks.
 
 ```ts
-import { productionSummary } from "convex-evalbench";
+import { productionSummary } from "@smart-code-solutions/convex-evalbench";
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 

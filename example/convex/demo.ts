@@ -1,4 +1,4 @@
-import { Evalbench } from "convex-evalbench";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
 import { v } from "convex/values";
 
 import { components } from "./_generated/api.js";

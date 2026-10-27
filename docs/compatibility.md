@@ -32,12 +32,13 @@ test verifies that the patch still rejects SDK 6 models for the SDK 7 Agent.
 `pnpm install` in this fork applies the patch via `pnpm-workspace.yaml`. A host
 installing the component package does **not** inherit this workspace patch. A
 host using affected Agent 0.7.8 constructor types may need the same patch until
-upstream fixes the declaration. This is a known compatibility limit, not a
+upstream fixes the declaration. The patch is included in the package under
+`patches/` and in this repository. This is a known compatibility limit, not a
 runtime observability feature.
 
 ## Verification and release scope
 
 Use the repository's existing local setup and checks in CONTRIBUTING.md. GitHub
-Actions execution is disabled on this fork; no hosted or npm release has run.
+Actions execution is disabled on this fork; scoped alpha releases are manual.
 Updating dependencies does not establish tenant isolation, complete financial
 accounting, or the missing metrics in [the coverage map](metrics-coverage.md).
