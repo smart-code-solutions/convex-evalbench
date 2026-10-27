@@ -4,6 +4,19 @@ import type {
   FunctionReturnType,
 } from "convex/server";
 import { createFunctionHandle } from "convex/server";
+import { ProductionTasks } from "./production.js";
+
+export { ProductionTasks } from "./production.js";
+export {
+  attemptReceipt,
+  attemptUsage,
+  attemptCost,
+  taskOutcome,
+  productionSummary,
+  productionTask,
+  productionAttempt,
+  type AttemptReceipt,
+} from "../production.js";
 
 import type { ComponentApi } from "../component/_generated/component.js";
 import type {
@@ -180,7 +193,10 @@ async function resolveScorerHandles(
  * ```
  */
 export class Evalbench {
-  constructor(public component: ComponentApi) {}
+  readonly production: ProductionTasks;
+  constructor(public component: ComponentApi) {
+    this.production = new ProductionTasks(component);
+  }
 
   /**
    * Record one span. Best-effort: a recording failure is logged and

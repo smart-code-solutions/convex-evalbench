@@ -2,8 +2,11 @@
 
 This compares the original AI metrics checklist with upstream Evalbench at
 `105c07ddd1d927e0bbb3ba321c1df939489e1852`. It describes capabilities and proposed
-extensions, not completed implementation. Refreshing dependencies does not add
-missing measurements, accounting, or summaries.
+extensions against that upstream baseline. This fork now adds an unpublished
+[task/attempt accounting pilot](production-accounting.md) with strict receipts,
+AI Budget composition and bounded task summaries. The table below still describes
+the broader required measurement/reporting work; installing the fork does not
+automatically instrument an application or complete this checklist.
 
 ## Delivery model
 

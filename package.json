@@ -99,6 +99,7 @@
   "devDependencies": {
     "@ai-sdk/anthropic": "^4.0.89",
     "@convex-dev/agent": "^0.7.8",
+    "@convex-dev/ai-budget": "1.1.2",
     "@convex-dev/eslint-plugin": "^5.0.0",
     "@edge-runtime/vm": "5.0.0",
     "@eslint/js": "^10.0.1",

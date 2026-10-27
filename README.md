@@ -3,11 +3,12 @@
 Reactive LLM eval, tracing, and regression layer as a
 [Convex Component](https://www.convex.dev/components).
 
-The Smart Code Solutions fork is starting with dependency and adapter
-compatibility. See [metrics coverage](./docs/metrics-coverage.md) for how the AI
-metrics checklist maps to existing functionality and proposed extensions.
-Budget accounting and the full metrics checklist are not implemented by a
-dependency refresh.
+The Smart Code Solutions fork adds an unpublished
+[production accounting pilot](./docs/production-accounting.md): task/attempt
+identity, strict replay-safe receipts, sibling AI Budget transaction composition,
+and bounded reactive summaries. Install the built fork tarball to try it;
+the upstream npm package does not contain this API.
+See [metrics coverage](./docs/metrics-coverage.md) for the remaining checklist.
 See [dependency compatibility](./docs/compatibility.md) for supported consumer
 pairs, verification scope, and the Agent 0.7.8 type-declaration patch.
 
