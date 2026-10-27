@@ -111,10 +111,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             candidateScore?: number;
             candidateStatus: string;
             classification:
-              | "regressed"
-              | "improved"
-              | "unchanged"
-              | "incomplete";
+              "regressed" | "improved" | "unchanged" | "incomplete";
             itemId: string;
             scoreDelta?: number;
           }>;

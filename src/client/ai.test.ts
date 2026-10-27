@@ -2,11 +2,19 @@ import { convexTest } from "convex-test";
 import type { TestConvex } from "convex-test";
 import type { SchemaDefinition, GenericSchema } from "convex/server";
 import { describe, expect, test } from "vitest";
+import { generateText, streamText, wrapLanguageModel } from "ai";
+import { MockLanguageModelV4 } from "ai/test";
+import {
+  generateText as generateTextV6,
+  streamText as streamTextV6,
+  wrapLanguageModel as wrapLanguageModelV6,
+} from "ai-sdk-v6";
+import { MockLanguageModelV3 } from "ai-sdk-v6/test";
 
 import { api } from "../component/_generated/api.js";
 import schema from "../component/schema.js";
 import { modules } from "../component/setup.test.js";
-import { evalbenchMiddleware } from "./ai.js";
+import { evalbenchMiddleware, type EvalbenchMiddleware } from "./ai.js";
 import { Evalbench, type RunActionCtx } from "./index.js";
 
 /**
@@ -38,12 +46,13 @@ const params = { prompt: [{ role: "user", content: "hi" }] };
 /** A doGenerate result with the AI SDK v3 nested-usage shape. */
 function generateResult(overrides: Record<string, unknown> = {}) {
   return {
-    content: [{ type: "text", text: "HELLO" }],
-    finishReason: { unified: "stop", raw: "stop" },
+    content: [{ type: "text" as const, text: "HELLO" }],
+    finishReason: { unified: "stop" as const, raw: "stop" },
     usage: {
-      inputTokens: { total: 10 },
-      outputTokens: { total: 20 },
+      inputTokens: { total: 10, noCache: 8, cacheRead: 2, cacheWrite: 0 },
+      outputTokens: { total: 20, text: 18, reasoning: 2 },
     },
+    warnings: [],
     providerMetadata: { openai: { cachedPromptTokens: 0 } },
     ...overrides,
   };
@@ -78,6 +87,88 @@ async function drain(stream: ReadableStream<any>): Promise<any[]> {
   }
   return seen;
 }
+
+const sdkVersions = [
+  {
+    name: "AI SDK 6",
+    generate: (middleware: EvalbenchMiddleware) =>
+      generateTextV6({
+        model: wrapLanguageModelV6({
+          model: new MockLanguageModelV3({ doGenerate: generateResult() }),
+          middleware,
+        }),
+        prompt: "hi",
+      }),
+    stream: (middleware: EvalbenchMiddleware) =>
+      streamTextV6({
+        model: wrapLanguageModelV6({
+          model: new MockLanguageModelV3({ doStream: { stream: sdkStream() } }),
+          middleware,
+        }),
+        prompt: "hi",
+      }),
+  },
+  {
+    name: "AI SDK 7",
+    generate: (middleware: EvalbenchMiddleware) =>
+      generateText({
+        model: wrapLanguageModel({
+          model: new MockLanguageModelV4({ doGenerate: generateResult() }),
+          middleware,
+        }),
+        prompt: "hi",
+      }),
+    stream: (middleware: EvalbenchMiddleware) =>
+      streamText({
+        model: wrapLanguageModel({
+          model: new MockLanguageModelV4({ doStream: { stream: sdkStream() } }),
+          middleware,
+        }),
+        prompt: "hi",
+      }),
+  },
+];
+
+function sdkStream() {
+  return streamOf([
+    { type: "text-start", id: "text-1" },
+    { type: "text-delta", id: "text-1", delta: "HELLO" },
+    { type: "text-end", id: "text-1" },
+    {
+      type: "finish",
+      usage: generateResult().usage,
+      finishReason: generateResult().finishReason,
+    },
+  ]);
+}
+
+describe.each(sdkVersions)("$name consumer compatibility", (sdk) => {
+  test("generation records one span through the real SDK middleware API", async () => {
+    const { ctx, evalbench, rows } = setup();
+    const result = await sdk.generate(evalbenchMiddleware({ evalbench, ctx }));
+    expect(result.text).toBe("HELLO");
+    expect(await rows()).toMatchObject([
+      { status: "success", inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+    ]);
+  });
+
+  test("consumed streaming output records one span and its final usage", async () => {
+    const { ctx, evalbench, rows } = setup();
+    const result = sdk.stream(
+      evalbenchMiddleware({ evalbench, ctx, recordContent: true }),
+    );
+    expect(await result.text).toBe("HELLO");
+    expect(await rows()).toMatchObject([
+      {
+        status: "success",
+        inputTokens: 10,
+        outputTokens: 20,
+        totalTokens: 30,
+        output: "HELLO",
+      },
+    ]);
+  });
+});
 
 describe("evalbenchMiddleware wrapGenerate", () => {
   test("records one llm span with mapped model, usage, and measured latency", async () => {
@@ -138,7 +229,9 @@ describe("evalbenchMiddleware wrapGenerate", () => {
     const mw = evalbenchMiddleware({ evalbench, ctx });
 
     await mw.wrapGenerate(
-      genArgs(async () => generateResult({ finishReason: { unified: "error" } })),
+      genArgs(async () =>
+        generateResult({ finishReason: { unified: "error" } }),
+      ),
     );
 
     const [s] = await rows();

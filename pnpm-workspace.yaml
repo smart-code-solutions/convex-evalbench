@@ -9,4 +9,7 @@ allowBuilds:
 # enters the tree via `convex` and `convex-test` (dev), so this is
 # defense-in-depth.
 overrides:
-  ws: ^8.20.1
+  ws: ^8.21.0
+
+patchedDependencies:
+  "@convex-dev/agent@0.7.8": patches/@convex-dev__agent@0.7.8.patch

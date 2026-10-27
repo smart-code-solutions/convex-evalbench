@@ -1,7 +1,11 @@
 import { convexTest } from "convex-test";
 import type { TestConvex } from "convex-test";
 import type { SchemaDefinition, GenericSchema } from "convex/server";
-import { describe, expect, test } from "vitest";
+import { describe, expect, expectTypeOf, test } from "vitest";
+import { Agent, type Config } from "@convex-dev/agent";
+import agentTest from "@convex-dev/agent/test";
+import { MockLanguageModelV4 } from "ai/test";
+import { MockLanguageModelV3 } from "ai-sdk-v6/test";
 
 import { api } from "../component/_generated/api.js";
 import schema from "../component/schema.js";
@@ -42,6 +46,64 @@ const usageArgs = {
 };
 
 describe("withEvalbench", () => {
+  test("the current Agent preserves its host hook and records a real SDK generation", async () => {
+    const { t, evalbench, rows } = setup();
+    let hostUsageCalls = 0;
+    const agent = withEvalbench(
+      new Agent(agentTest.register(t), {
+        name: "compatibility-agent",
+        languageModel: new MockLanguageModelV4({
+          doGenerate: {
+            content: [{ type: "text", text: "HELLO" }],
+            finishReason: { unified: "stop", raw: "stop" },
+            usage: {
+              inputTokens: {
+                total: 2,
+                noCache: 2,
+                cacheRead: 0,
+                cacheWrite: 0,
+              },
+              outputTokens: { total: 3, text: 3, reasoning: 0 },
+            },
+            warnings: [],
+          },
+        }),
+        usageHandler: async () => {
+          hostUsageCalls++;
+        },
+      }),
+      { evalbench },
+    );
+
+    const text = await t.action(async (ctx) => {
+      const { threadId } = await agent.createThread(ctx, {});
+      return (await agent.generateText(ctx, { threadId }, { prompt: "hi" }))
+        .text;
+    });
+    expect(text).toBe("HELLO");
+    expect(hostUsageCalls).toBe(1);
+    const spans = await rows();
+    expect(spans).toHaveLength(2);
+    const root = spans.find((span) => span.kind === "agent_step")!;
+    expect(spans.find((span) => span.kind === "llm")).toMatchObject({
+      parentSpanId: root.spanId,
+      traceId: root.traceId,
+      status: "success",
+      inputTokens: 2,
+      outputTokens: 3,
+      totalTokens: 5,
+    });
+  });
+
+  test("the Agent constructor patch still rejects SDK 6 models", () => {
+    expectTypeOf<MockLanguageModelV3>().not.toMatchTypeOf<
+      NonNullable<Config["languageModel"]>
+    >();
+    expectTypeOf<
+      ConstructorParameters<typeof Agent>[1]["languageModel"]
+    >().toEqualTypeOf<NonNullable<Config["languageModel"]>>();
+  });
+
   test("usage handler maps agent usage onto span fields", async () => {
     const { ctx, evalbench, rows } = setup();
     const agent: AgentLike = { options: { name: "demo" } };

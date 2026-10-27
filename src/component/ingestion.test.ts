@@ -1,4 +1,4 @@
-import { anyApi } from "convex/server";
+import { anyApi, type ApiFromModules } from "convex/server";
 import { convexTest } from "convex-test";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -9,9 +9,11 @@ import { modules } from "./setup.test.js";
 // Load the test target module so its client-wrapper actions register.
 import "./targets.test.js";
 
-const targetsTest = (anyApi as never as Record<string, Record<string, never>>)[
-  "targets.test"
-];
+const targetsTest = (
+  anyApi as unknown as ApiFromModules<{
+    "targets.test": typeof import("./targets.test.js");
+  }>
+)["targets.test"];
 
 /** Minimal always-recorded fields for a root span. */
 function baseSpan(overrides: Record<string, unknown> = {}) {
@@ -71,8 +73,8 @@ describe("ingestion", () => {
       baseSpan({ input: "hello", output: "world" }),
     );
 
-    const row = await t.run(async (ctx) =>
-      (await ctx.db.query("eval_traces").collect())[0],
+    const row = await t.run(
+      async (ctx) => (await ctx.db.query("eval_traces").collect())[0],
     );
     expect(row.input).toBe("hello");
     expect(row.output).toBe("world");
@@ -80,7 +82,9 @@ describe("ingestion", () => {
     expect(row.outputStorageId).toBeUndefined();
     expect(row.contentRecorded).toBe(true);
 
-    const files = await t.run((ctx) => ctx.db.system.query("_storage").collect());
+    const files = await t.run((ctx) =>
+      ctx.db.system.query("_storage").collect(),
+    );
     expect(files).toHaveLength(0);
   });
 
@@ -92,8 +96,8 @@ describe("ingestion", () => {
       baseSpan({ input: big, output: "small" }),
     );
 
-    const row = await t.run(async (ctx) =>
-      (await ctx.db.query("eval_traces").collect())[0],
+    const row = await t.run(
+      async (ctx) => (await ctx.db.query("eval_traces").collect())[0],
     );
     // Large input offloaded; small output stays inline.
     expect(row.input).toBeUndefined();
@@ -102,7 +106,9 @@ describe("ingestion", () => {
     expect(row.outputStorageId).toBeUndefined();
     expect(row.contentRecorded).toBe(true);
 
-    const files = await t.run((ctx) => ctx.db.system.query("_storage").collect());
+    const files = await t.run((ctx) =>
+      ctx.db.system.query("_storage").collect(),
+    );
     expect(files).toHaveLength(1);
 
     // The on-demand content query exposes the blob as a signed URL.
@@ -121,8 +127,8 @@ describe("ingestion", () => {
       baseSpan({ inputTokens: 10, outputTokens: 5, totalTokens: 15 }),
     );
 
-    const row = await t.run(async (ctx) =>
-      (await ctx.db.query("eval_traces").collect())[0],
+    const row = await t.run(
+      async (ctx) => (await ctx.db.query("eval_traces").collect())[0],
     );
     expect(row.contentRecorded).toBe(false);
     expect(row.input).toBeUndefined();
@@ -178,9 +184,7 @@ describe("trace retention pruning", () => {
         output: big,
       }),
     );
-    let files = await t.run((ctx) =>
-      ctx.db.system.query("_storage").collect(),
-    );
+    let files = await t.run((ctx) => ctx.db.system.query("_storage").collect());
     expect(files).toHaveLength(2);
 
     const outcome = await t.mutation(api.ingestion.pruneTraces, {
@@ -245,10 +249,9 @@ describe("trace retention pruning", () => {
       baseSpan({ spanId: "old", startedAt: NOW - 40 * DAY }),
     );
 
-    const outcome = (await t.action(
-      targetsTest.clientPruneTraces as never,
-      { olderThanMs: 30 * DAY } as never,
-    )) as { deleted: number; hasMore: boolean };
+    const outcome = await t.action(targetsTest.clientPruneTraces, {
+      olderThanMs: 30 * DAY,
+    });
     expect(outcome).toEqual({ deleted: 1, hasMore: false });
     const rows = await t.run((ctx) => ctx.db.query("eval_traces").collect());
     expect(rows).toHaveLength(0);

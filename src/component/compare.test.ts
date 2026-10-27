@@ -1,4 +1,4 @@
-import { anyApi } from "convex/server";
+import { anyApi, type ApiFromModules } from "convex/server";
 import { convexTest } from "convex-test";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -9,9 +9,11 @@ import { modules } from "./setup.test.js";
 // Load the test target module so its client-wrapper actions register.
 import "./targets.test.js";
 
-const targetsTest = (anyApi as never as Record<string, Record<string, never>>)[
-  "targets.test"
-];
+const targetsTest = (
+  anyApi as unknown as ApiFromModules<{
+    "targets.test": typeof import("./targets.test.js");
+  }>
+)["targets.test"];
 
 async function seedDataset(
   t: ReturnType<typeof convexTest>,
@@ -404,21 +406,21 @@ describe("client layer (Evalbench methods)", () => {
       { passed: true, itemScore: 1 },
     ]);
 
-    const cmp = (await t.action(targetsTest.clientCompare as never, {
+    const cmp = await t.action(targetsTest.clientCompare, {
       baselineRunId: baseline,
       candidateRunId: candidate,
-    } as never)) as { stats: { regressed: number } };
+    });
     expect(cmp.stats.regressed).toBe(1);
 
-    const verdict = (await t.action(targetsTest.clientGate as never, {
+    const verdict = await t.action(targetsTest.clientGate, {
       baselineRunId: baseline,
       candidateRunId: candidate,
-    } as never)) as { ok: boolean };
+    });
     expect(verdict.ok).toBe(false);
 
-    const runs = (await t.action(targetsTest.clientListRuns as never, {
+    const runs = await t.action(targetsTest.clientListRuns, {
       datasetId,
-    } as never)) as { _id: Id<"eval_runs"> }[];
+    });
     expect(runs.map((r) => r._id)).toEqual([candidate, baseline]);
   });
 });
