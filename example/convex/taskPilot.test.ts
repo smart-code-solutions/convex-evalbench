@@ -83,6 +83,12 @@ describe("sibling AI Budget + production accounting", () => {
     );
     expect(requests).toHaveLength(1);
     expect(requests[0].costNanos).toBe(1000);
+    expect(
+      await t.query(internal.taskPilot.inspectPages, {
+        tenantId: args.tenantId,
+        taskKey: args.taskKey,
+      }),
+    ).toEqual({ tasks: 1, attempts: 1 });
   });
 
   test("parent mutation failure rolls back both reservation and attempt", async () => {

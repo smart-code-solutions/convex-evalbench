@@ -1,5 +1,7 @@
 import { paginationOptsValidator, type PaginationOptions } from "convex/server";
 import { v } from "convex/values";
+import { paginator } from "convex-helpers/server/pagination";
+import schema from "./schema.js";
 import { mutation, query, type QueryCtx } from "./_generated/server.js";
 import {
   taskIdentity,
@@ -200,7 +202,7 @@ export const listTasks = query({
   }),
   handler: async (ctx, args) => {
     validatePage(args.paginationOpts);
-    const { page, isDone, continueCursor } = await ctx.db
+    const { page, isDone, continueCursor } = await paginator(ctx.db, schema)
       .query("production_tasks")
       .withIndex("by_scope_started", (q) =>
         q.eq("tenantId", args.tenantId).eq("useCase", args.useCase),
@@ -219,7 +221,7 @@ export const listAttempts = query({
   }),
   handler: async (ctx, args) => {
     validatePage(args.paginationOpts);
-    const { page, isDone, continueCursor } = await ctx.db
+    const { page, isDone, continueCursor } = await paginator(ctx.db, schema)
       .query("production_attempts")
       .withIndex("by_task_started", (q) =>
         q

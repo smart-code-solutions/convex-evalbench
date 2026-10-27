@@ -110,7 +110,6 @@
     "ai-sdk-v6": "npm:ai@^6.0.316",
     "chokidar-cli": "3.0.0",
     "convex": "^1.48.0",
-    "convex-helpers": "^0.1.129",
     "convex-test": "^0.0.65",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",
@@ -121,7 +120,8 @@
     "vitest": "^4.1.12"
   },
   "dependencies": {
-    "@cfworker/json-schema": "^4.1.1"
+    "@cfworker/json-schema": "^4.1.1",
+    "convex-helpers": "^0.1.129"
   },
   "engines": {
     "node": ">=22"

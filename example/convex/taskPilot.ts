@@ -172,3 +172,23 @@ export const inspectSummary = internalQuery({
   returns: productionSummary,
   handler: (ctx, args) => tasks.summarizeTasks(ctx, { ...args, useCase }),
 });
+
+export const inspectPages = internalQuery({
+  args: { tenantId: v.string(), taskKey: v.string() },
+  returns: v.object({ tasks: v.number(), attempts: v.number() }),
+  handler: async (ctx, { tenantId, taskKey }) => {
+    const paginationOpts = { cursor: null, numItems: 50 };
+    const page = await tasks.listTasks(ctx, {
+      tenantId,
+      useCase,
+      paginationOpts,
+    });
+    const attempts = await tasks.listAttempts(ctx, {
+      tenantId,
+      useCase,
+      taskKey,
+      paginationOpts,
+    });
+    return { tasks: page.page.length, attempts: attempts.page.length };
+  },
+});

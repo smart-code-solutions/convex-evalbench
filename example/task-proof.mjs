@@ -124,6 +124,10 @@ try {
   }
   const result = await client.query(internal.taskPilot.inspectSummary, range);
   assert.equal(result.attemptCount, 1);
+  assert.deepEqual(
+    await client.query(internal.taskPilot.inspectPages, { tenantId, taskKey }),
+    { tasks: 1, attempts: 1 },
+  );
   assert.equal(result.knownCostNanos, 1000);
   assert.equal(result.costPerSuccessfulTaskNanos, 1000);
   assert.equal(snapshots[0], 0);
