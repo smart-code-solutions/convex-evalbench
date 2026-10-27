@@ -1,10 +1,10 @@
 {
-  "version": "2026-05-06-8bc6aa4",
+  "version": "2026-10-10-72ce13c",
   "sha256": {
-    "darwin-arm64": "5c42f1e8f88986cfea7dfcfccbac794e22f9711da134cda315f45ee4338a0537",
-    "darwin-x64": "TBD",
-    "linux-x64": "TBD",
-    "linux-arm64": "TBD"
+    "darwin-arm64": "fbaf2dcff35c57a16f1f6a804fd505ba562fcc7f6898c170b4e0f7f0c46c0881",
+    "darwin-x64": "a621a16688bad0a5f06726956e67c58af574e82ed98ab83d4889fd8cd6b2bc94",
+    "linux-x64": "fcc51faa1168011819eec9aba85bf6959a6a7ce3929381cdc21c7da29f4bf3d5",
+    "linux-arm64": "9464be0dc11826a37b5c29b380166ac4912997fb73e2bff596ea40d05c3313f8"
   },
-  "_note": "Pinned version + per-arch SHA-256 from https://github.com/get-convex/convex-backend/releases. Set TBD entries to actual SHAs before allowing CI installs on those arches; the installer logs a WARNING when downloading against a TBD pin."
+  "_note": "Archive digests from https://github.com/convex/convex-backend/releases/tag/precompiled-2026-10-10-72ce13c. Current backend required by AI Budget's nested components."
 }

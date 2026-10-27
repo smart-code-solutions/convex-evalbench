@@ -14,6 +14,7 @@ import type * as dashboard from "../dashboard.js";
 import type * as demo from "../demo.js";
 import type * as evalDemo from "../evalDemo.js";
 import type * as http from "../http.js";
+import type * as taskPilot from "../taskPilot.js";
 
 import type {
   ApiFromModules,
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   demo: typeof demo;
   evalDemo: typeof evalDemo;
   http: typeof http;
+  taskPilot: typeof taskPilot;
 }>;
 
 /**
@@ -57,6 +59,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  evalbench: import("convex-evalbench/_generated/component.js").ComponentApi<"evalbench">;
+  evalbench: import("@smart-code-solutions/convex-evalbench/_generated/component.js").ComponentApi<"evalbench">;
   agent: import("@convex-dev/agent/_generated/component.js").ComponentApi<"agent">;
+  aiBudget: import("@convex-dev/ai-budget/_generated/component.js").ComponentApi<"aiBudget">;
 };

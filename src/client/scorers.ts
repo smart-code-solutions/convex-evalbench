@@ -13,7 +13,7 @@ import type { Evalbench, RunActionCtx } from "./index.js";
  *
  * ```ts
  * import { action } from "./_generated/server.js";
- * import { defineScorer } from "convex-evalbench";
+ * import { defineScorer } from "@smart-code-solutions/convex-evalbench";
  *
  * export const politeness = action(
  *   defineScorer(async (ctx, args) => {

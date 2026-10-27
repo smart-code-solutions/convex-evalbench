@@ -1,13 +1,21 @@
-# convex-evalbench
+# @smart-code-solutions/convex-evalbench
 
 Reactive LLM eval, tracing, and regression layer as a
 [Convex Component](https://www.convex.dev/components).
 
-The Smart Code Solutions fork is starting with dependency and adapter
-compatibility. See [metrics coverage](./docs/metrics-coverage.md) for how the AI
-metrics checklist maps to existing functionality and proposed extensions.
-Budget accounting and the full metrics checklist are not implemented by a
-dependency refresh.
+This is the Smart Code Solutions fork of
+[Thorben Fohlmeister's Evalbench](https://github.com/tfohlmeister/convex-evalbench),
+released under the original Apache-2.0 license. The `0.4.0-alpha.0` prerelease adds
+[production accounting](./docs/production-accounting.md): task/attempt identity,
+strict replay-safe receipts, sibling AI Budget transaction composition, and
+bounded reactive summaries. The upstream unscoped npm package does not contain
+these additions.
+
+**Alpha limit:** production task accounting has no retention/deletion API or
+late-write fencing yet. Use synthetic data until those are integrated; installing
+this package does not automatically instrument provider calls or evaluate quality.
+
+See [metrics coverage](./docs/metrics-coverage.md) for the remaining checklist.
 See [dependency compatibility](./docs/compatibility.md) for supported consumer
 pairs, verification scope, and the Agent 0.7.8 type-declaration patch.
 
@@ -17,9 +25,7 @@ reactive dashboard live, all inside your own Convex deployment. No
 extra infrastructure, no polling: Convex subscriptions push every new
 span to your UI as it lands.
 
-[![Convex Component](https://www.convex.dev/components/badge/convex-evalbench)](https://www.convex.dev/components/convex-evalbench)
-[![tests](https://img.shields.io/github/actions/workflow/status/tfohlmeister/convex-evalbench/test.yml?branch=main&label=tests)](https://github.com/tfohlmeister/convex-evalbench/actions/workflows/test.yml)
-[![npm](https://img.shields.io/npm/v/convex-evalbench.svg)](https://www.npmjs.com/package/convex-evalbench)
+[![npm alpha](https://img.shields.io/npm/v/@smart-code-solutions/convex-evalbench/alpha.svg)](https://www.npmjs.com/package/@smart-code-solutions/convex-evalbench)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
 <!-- START: Include on https://convex.dev/components -->
@@ -42,13 +48,13 @@ it is in flight, no polling.
 ### Install and register
 
 ```sh
-npm install convex-evalbench
+npm install @smart-code-solutions/convex-evalbench@alpha
 ```
 
 ```ts
 // convex/convex.config.ts
 import { defineApp } from "convex/server";
-import evalbench from "convex-evalbench/convex.config";
+import evalbench from "@smart-code-solutions/convex-evalbench/convex.config";
 
 const app = defineApp();
 app.use(evalbench);
@@ -62,7 +68,7 @@ spans. Recording is best-effort: a failure is logged and swallowed, never
 thrown back into your LLM call.
 
 ```ts
-import { Evalbench } from "convex-evalbench";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
 import { components } from "./_generated/api.js";
 import { action } from "./_generated/server.js";
 
@@ -144,8 +150,8 @@ tracing core does not import it.
 
 ```ts
 import { Agent } from "@convex-dev/agent";
-import { Evalbench } from "convex-evalbench";
-import { withEvalbench } from "convex-evalbench/agent";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
+import { withEvalbench } from "@smart-code-solutions/convex-evalbench/agent";
 import { anthropic } from "@ai-sdk/anthropic";
 import { components } from "./_generated/api.js";
 
@@ -169,10 +175,10 @@ limitations.
 
 Two more optional sources feed the same tracing core:
 
-- **Vercel AI SDK** (`convex-evalbench/ai`): `evalbenchMiddleware` wraps a
+- **Vercel AI SDK** (`@smart-code-solutions/convex-evalbench/ai`): `evalbenchMiddleware` wraps a
   model with `wrapLanguageModel`, recording one span per call with measured
   latency. `ai` is an optional peer dependency.
-- **OpenTelemetry** (`convex-evalbench/otlp`): `otlpTraceHandler` is an
+- **OpenTelemetry** (`@smart-code-solutions/convex-evalbench/otlp`): `otlpTraceHandler` is an
   `httpAction` you mount (e.g. at `/v1/traces`) so any OTLP/JSON exporter
   streams spans in, mapped via GenAI semantic conventions.
 

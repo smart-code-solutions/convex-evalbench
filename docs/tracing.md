@@ -194,7 +194,7 @@ Mechanism (verified against `@convex-dev/agent` 0.6.1):
 `evalbenchMiddleware({ evalbench, ctx, recordContent? })` builds a Vercel
 AI SDK `LanguageModelV2Middleware` (AI SDK v6, provider spec `v3`). Wrap it
 around any model with `wrapLanguageModel`; each call through the wrapped
-model records one `llm` span. Import it from `convex-evalbench/ai`. As with
+model records one `llm` span. Import it from `@smart-code-solutions/convex-evalbench/ai`. As with
 the agent adapter, it describes the AI SDK types structurally rather than
 importing `ai`, so the core builds and tests without the optional `ai`
 peer; `ai` is an optional peer dependency.
@@ -202,7 +202,7 @@ peer; `ai` is an optional peer dependency.
 ```ts
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText, wrapLanguageModel } from "ai";
-import { evalbenchMiddleware } from "convex-evalbench/ai";
+import { evalbenchMiddleware } from "@smart-code-solutions/convex-evalbench/ai";
 
 export const ask = action({
   args: { prompt: v.string() },
@@ -257,12 +257,12 @@ builds an HTTP handler that receives OpenTelemetry OTLP trace exports and
 maps their spans into the ingestion API, so any OTel-instrumented app
 (OpenLLMetry / Traceloop, a framework's OTEL export, a raw OTel SDK) can
 stream LLM spans into the deployment with no evalbench-specific code. Import
-it from `convex-evalbench/otlp` and mount it in `convex/http.ts`:
+it from `@smart-code-solutions/convex-evalbench/otlp` and mount it in `convex/http.ts`:
 
 ```ts
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server.js";
-import { otlpTraceHandler } from "convex-evalbench/otlp";
+import { otlpTraceHandler } from "@smart-code-solutions/convex-evalbench/otlp";
 
 const http = httpRouter();
 http.route({

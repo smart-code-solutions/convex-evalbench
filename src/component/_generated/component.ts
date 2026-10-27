@@ -387,6 +387,263 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         Name
       >;
     };
+    production: {
+      finishAttempt: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          attemptKey: string;
+          receipt: {
+            cost:
+              | { kind: "unknown" }
+              | {
+                  kind: "known";
+                  nanos: number;
+                  source:
+                    "authoritative" | "token_estimate" | "reservation_estimate";
+                };
+            finishedAt: number;
+            firstTextAt?: number;
+            outcome:
+              "success" | "error" | "timeout" | "rate_limit" | "cancelled";
+            usage:
+              | { kind: "unknown" }
+              | {
+                  cachedInputTokens?: number;
+                  inputTokens: number;
+                  kind: "known";
+                  outputTokens: number;
+                };
+          };
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+        },
+        null,
+        Name
+      >;
+      finishTask: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          attemptsComplete: boolean;
+          finishedAt: number;
+          outcome: "success" | "failure" | "unknown";
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+        },
+        null,
+        Name
+      >;
+      getTask: FunctionReference<
+        "query",
+        "internal",
+        { taskKey: string; tenantId: string; useCase: string },
+        {
+          _creationTime: number;
+          _id: string;
+          startedAt: number;
+          state:
+            | { kind: "running" }
+            | {
+                attemptsComplete: boolean;
+                finishedAt: number;
+                kind: "finished";
+                outcome: "success" | "failure" | "unknown";
+              };
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+          version?: string;
+        } | null,
+        Name
+      >;
+      listAttempts: FunctionReference<
+        "query",
+        "internal",
+        {
+          paginationOpts: {
+            cursor: string | null;
+            endCursor?: string | null;
+            id?: number;
+            maximumBytesRead?: number;
+            maximumRowsRead?: number;
+            numItems: number;
+          };
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+        },
+        {
+          continueCursor: string;
+          isDone: boolean;
+          page: Array<{
+            _creationTime: number;
+            _id: string;
+            attemptKey: string;
+            model: string;
+            provider: string;
+            startedAt: number;
+            state:
+              | { kind: "pending" }
+              | { kind: "unknown" }
+              | {
+                  kind: "finished";
+                  receipt: {
+                    cost:
+                      | { kind: "unknown" }
+                      | {
+                          kind: "known";
+                          nanos: number;
+                          source:
+                            | "authoritative"
+                            | "token_estimate"
+                            | "reservation_estimate";
+                        };
+                    finishedAt: number;
+                    firstTextAt?: number;
+                    outcome:
+                      | "success"
+                      | "error"
+                      | "timeout"
+                      | "rate_limit"
+                      | "cancelled";
+                    usage:
+                      | { kind: "unknown" }
+                      | {
+                          cachedInputTokens?: number;
+                          inputTokens: number;
+                          kind: "known";
+                          outputTokens: number;
+                        };
+                  };
+                };
+            taskKey: string;
+            tenantId: string;
+            useCase: string;
+          }>;
+        },
+        Name
+      >;
+      listTasks: FunctionReference<
+        "query",
+        "internal",
+        {
+          paginationOpts: {
+            cursor: string | null;
+            endCursor?: string | null;
+            id?: number;
+            maximumBytesRead?: number;
+            maximumRowsRead?: number;
+            numItems: number;
+          };
+          tenantId: string;
+          useCase: string;
+        },
+        {
+          continueCursor: string;
+          isDone: boolean;
+          page: Array<{
+            _creationTime: number;
+            _id: string;
+            startedAt: number;
+            state:
+              | { kind: "running" }
+              | {
+                  attemptsComplete: boolean;
+                  finishedAt: number;
+                  kind: "finished";
+                  outcome: "success" | "failure" | "unknown";
+                };
+            taskKey: string;
+            tenantId: string;
+            useCase: string;
+            version?: string;
+          }>;
+        },
+        Name
+      >;
+      markAttemptUnknown: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          attemptKey: string;
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+        },
+        null,
+        Name
+      >;
+      startAttempt: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          attemptKey: string;
+          model: string;
+          provider: string;
+          startedAt: number;
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+        },
+        { created: boolean },
+        Name
+      >;
+      startTask: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          startedAt: number;
+          taskKey: string;
+          tenantId: string;
+          useCase: string;
+          version?: string;
+        },
+        { created: boolean },
+        Name
+      >;
+      summarizeTasks: FunctionReference<
+        "query",
+        "internal",
+        { from: number; tenantId: string; to: number; useCase: string },
+        {
+          attemptCount: number;
+          cachedInputTokens: number;
+          cachedUsageAttempts: number;
+          costPerSuccessfulTaskNanos: number | null;
+          coverage: {
+            asOf: number;
+            attemptsPerTaskLimit: number;
+            oldestTaskStartedAt: number | null;
+            taskLimit: number;
+            tasksTruncated: boolean;
+            tasksWithTruncatedAttempts: number;
+          };
+          failedAttempts: number;
+          failedTasks: number;
+          finishedTasks: number;
+          firstTextAttempts: number;
+          inputTokens: number;
+          knownCostAttempts: number;
+          knownCostNanos: number;
+          knownUsageAttempts: number;
+          latencyMs: {
+            p50: number | null;
+            p95: number | null;
+            p99: number | null;
+            sampleCount: number;
+          };
+          outputTokens: number;
+          successfulTasks: number;
+          taskCount: number;
+          unknownOutcomeTasks: number;
+          unresolvedAttempts: number;
+        },
+        Name
+      >;
+    };
     queries: {
       recentTraces: FunctionReference<
         "query",

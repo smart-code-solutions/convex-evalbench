@@ -1,7 +1,7 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText, wrapLanguageModel } from "ai";
-import { Evalbench } from "convex-evalbench";
-import { evalbenchMiddleware } from "convex-evalbench/ai";
+import { Evalbench } from "@smart-code-solutions/convex-evalbench";
+import { evalbenchMiddleware } from "@smart-code-solutions/convex-evalbench/ai";
 import { v } from "convex/values";
 
 import { components } from "./_generated/api.js";

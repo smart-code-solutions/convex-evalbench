@@ -3,7 +3,7 @@ import {
   defineScorer,
   llmAsJudge,
   retryableError,
-} from "convex-evalbench";
+} from "@smart-code-solutions/convex-evalbench";
 import { ConvexError, v } from "convex/values";
 
 import { api, components } from "./_generated/api.js";

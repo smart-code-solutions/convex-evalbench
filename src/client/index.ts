@@ -4,6 +4,19 @@ import type {
   FunctionReturnType,
 } from "convex/server";
 import { createFunctionHandle } from "convex/server";
+import { ProductionTasks } from "./production.js";
+
+export { ProductionTasks } from "./production.js";
+export {
+  attemptReceipt,
+  attemptUsage,
+  attemptCost,
+  taskOutcome,
+  productionSummary,
+  productionTask,
+  productionAttempt,
+  type AttemptReceipt,
+} from "../production.js";
 
 import type { ComponentApi } from "../component/_generated/component.js";
 import type {
@@ -173,14 +186,17 @@ async function resolveScorerHandles(
  * manual host instrumentation all funnel through `recordSpan`.
  *
  * ```ts
- * import { Evalbench } from "convex-evalbench";
+ * import { Evalbench } from "@smart-code-solutions/convex-evalbench";
  * import { components } from "./_generated/api.js";
  *
  * const evalbench = new Evalbench(components.evalbench);
  * ```
  */
 export class Evalbench {
-  constructor(public component: ComponentApi) {}
+  readonly production: ProductionTasks;
+  constructor(public component: ComponentApi) {
+    this.production = new ProductionTasks(component);
+  }
 
   /**
    * Record one span. Best-effort: a recording failure is logged and

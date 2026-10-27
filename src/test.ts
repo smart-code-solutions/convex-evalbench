@@ -11,7 +11,7 @@ const modules = import.meta.glob("./component/**/*.ts");
  *
  * ```ts
  * import { convexTest } from "convex-test";
- * import { register } from "convex-evalbench/test";
+ * import { register } from "@smart-code-solutions/convex-evalbench/test";
  *
  * const t = convexTest(hostSchema, hostModules);
  * register(t);

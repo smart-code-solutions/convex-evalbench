@@ -33,14 +33,13 @@ pnpm lint
 `pnpm check` runs all of the above (codegen + build + typecheck + test +
 lint), but the codegen step requires a running local backend.
 
-Keep `_generated/` directories committed: CI
-(`.github/workflows/test.yml`) builds against them and needs no live
-backend.
+Keep `_generated/` directories committed. GitHub Actions is disabled on this
+fork; run verification locally. Do not enable or dispatch hosted workflows.
 
 ## Tests
 
 Run with `pnpm test`. Tests use [`convex-test`](https://www.npmjs.com/package/convex-test);
-the `convex-evalbench/test` export registers the component schema so
+the `@smart-code-solutions/convex-evalbench/test` export registers the component schema so
 host-side tests can exercise the real component functions. The two
 `example/*-proof.mjs` scripts drive a real local backend end to end.
 
@@ -61,19 +60,23 @@ minor, and `feat!:` or a `BREAKING CHANGE:` footer a major bump. Other
 types (`chore:`, `docs:`, `ci:`, `refactor:`) do not bump the version
 and are hidden from the changelog by default.
 
-## Releasing
+## Releasing the scoped fork
 
-Releases are automated with
-[release-please](https://github.com/googleapis/release-please). On every
-push to `main` it reads the Conventional Commits since the last release
-and maintains a "release PR" that bumps the version and updates
-`CHANGELOG.md`.
+Fork releases are manual. GitHub Actions is disabled; the inherited
+release-please configuration does not publish this package.
 
-To cut a release, merge that PR. release-please then creates the
-`v<x.y.z>` tag and the GitHub release, and the publish job in
-`.github/workflows/release.yml` runs. That job is gated by the `release`
-environment, so a required reviewer still approves the publish.
+1. Update the scoped package version and changelog, and review/merge the release
+   changes into `main`. Preserve upstream attribution and the Apache-2.0 license.
+2. On that exact revision, run `pnpm check` with the local backend running, then
+   `pnpm build:dashboard` and the applicable `example/*-proof.mjs` checks.
+3. Run `pnpm pack --out /absolute/path/to/release.tgz`. The `prepack` script rebuilds
+   the package. Inspect the archive for exports, license and unexpected files;
+   install the archive in a clean consumer and verify its types and component.
+4. Authenticate with `npm login` using an account authorized for
+   `@smart-code-solutions`, then publish the reviewed archive:
+   `npm publish /absolute/path/to/release.tgz --access public --tag alpha`.
+5. Verify the registry version, alpha dist-tag and tarball integrity, then install
+   that exact version in the consumer and run its checks before deployment.
 
-Publishing uses npm Trusted Publishing (OIDC), so no `NPM_TOKEN` secret
-is needed. The Trusted Publisher is registered for workflow file
-`release.yml`.
+Alpha releases must retain the documented production-accounting limits. Do not
+move the `latest` dist-tag or imply full screenshot coverage from this prerelease.

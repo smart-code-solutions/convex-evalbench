@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { taskFields, attemptFields } from "../production.js";
 
 import {
   datasetItemFields,
@@ -27,6 +28,12 @@ import {
  * row that updates live as workers finalize items.
  */
 export default defineSchema({
+  production_tasks: defineTable(taskFields)
+    .index("by_identity", ["tenantId", "useCase", "taskKey"])
+    .index("by_scope_started", ["tenantId", "useCase", "startedAt"]),
+  production_attempts: defineTable(attemptFields)
+    .index("by_identity", ["tenantId", "useCase", "taskKey", "attemptKey"])
+    .index("by_task_started", ["tenantId", "useCase", "taskKey", "startedAt"]),
   eval_traces: defineTable(spanRowFields)
     // Span-tree query: all spans of a trace, oldest first.
     .index("by_trace", ["traceId", "startedAt"])
