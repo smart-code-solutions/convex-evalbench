@@ -1,4 +1,4 @@
-import { anyApi } from "convex/server";
+import { anyApi, type ApiFromModules } from "convex/server";
 import { convexTest } from "convex-test";
 import { afterEach, describe, expect, test, vi } from "vitest";
 
@@ -11,17 +11,16 @@ import { modules } from "./setup.test.js";
 // registration inside a running test.
 import "./targets.test.js";
 
-const targetsTest = (anyApi as never as Record<string, never>)[
-  "targets.test"
-] as unknown as {
-  respond: never;
-  makeHandle: never;
-};
+const targetsTest = (
+  anyApi as unknown as ApiFromModules<{
+    "targets.test": typeof import("./targets.test.js");
+  }>
+)["targets.test"];
 
 type TestConvexT = ReturnType<typeof convexTest>;
 
 async function makeHandle(t: TestConvexT, name: string): Promise<string> {
-  return (await t.action(targetsTest.makeHandle, { name } as never)) as string;
+  return await t.action(targetsTest.makeHandle, { name });
 }
 
 const exactMatchConfig = { scorers: [{ type: "exactMatch" as const }] };
@@ -206,7 +205,9 @@ describe("runner execution", () => {
   test("non-finite concurrency falls back to the default and still runs", async () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
-    const datasetId = await seedDataset(t, [{ input: "a", expectedOutput: "a" }]);
+    const datasetId = await seedDataset(t, [
+      { input: "a", expectedOutput: "a" },
+    ]);
     const targetHandle = await makeHandle(t, "respond");
 
     const runId = await t.mutation(api.runner.startRun, {
@@ -314,7 +315,9 @@ describe("managed retries", () => {
   test("a retryable failure below the cap is retried until it succeeds", async () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
-    const datasetId = await seedDataset(t, [{ input: "x", expectedOutput: "x" }]);
+    const datasetId = await seedDataset(t, [
+      { input: "x", expectedOutput: "x" },
+    ]);
     const targetHandle = await makeHandle(t, "flaky");
 
     const runId = await t.mutation(api.runner.startRun, {
@@ -371,7 +374,9 @@ describe("managed retries", () => {
   test("retryItem re-pends a running result, then a worker reprocesses it", async () => {
     vi.useFakeTimers();
     const t = convexTest(schema, modules);
-    const datasetId = await seedDataset(t, [{ input: "ok", expectedOutput: "ok" }]);
+    const datasetId = await seedDataset(t, [
+      { input: "ok", expectedOutput: "ok" },
+    ]);
     const targetHandle = await makeHandle(t, "respond");
     const { runId } = await t.mutation(internal.runner.createRun, {
       datasetId,
@@ -453,7 +458,12 @@ describe("handle-based scorers", () => {
       t,
       [{ input: "hi", expectedOutput: "hi" }],
       [
-        { type: "custom", name: "length", handle: scorerHandle, config: { note: "x" } },
+        {
+          type: "custom",
+          name: "length",
+          handle: scorerHandle,
+          config: { note: "x" },
+        },
       ],
     );
 
@@ -493,9 +503,7 @@ describe("handle-based scorers", () => {
     expect(result.status).toBe("success");
     expect(result.output).toBe("hi");
     expect(result.passed).toBe(false);
-    const byName = Object.fromEntries(
-      result.scores!.map((s) => [s.scorer, s]),
-    );
+    const byName = Object.fromEntries(result.scores!.map((s) => [s.scorer, s]));
     expect(byName.good).toMatchObject({ score: 1, passed: true });
     expect(byName.throwing.passed).toBe(false);
     expect((byName.throwing.details as { error: string }).error).toMatch(
@@ -570,9 +578,7 @@ describe("handle-based scorers", () => {
     );
 
     const [result] = await t.query(api.runner.listResults, { runId });
-    const byName = Object.fromEntries(
-      result.scores!.map((s) => [s.scorer, s]),
-    );
+    const byName = Object.fromEntries(result.scores!.map((s) => [s.scorer, s]));
 
     // 2/3 pass with default quorum 2: passing, mean score.
     expect(byName.panel.passed).toBe(true);
@@ -611,7 +617,9 @@ describe("llmAsJudge span recording", () => {
       datasetId,
       targetHandle,
       config: {
-        scorers: [{ type: "custom" as const, name: "polite", handle: judgeHandle }],
+        scorers: [
+          { type: "custom" as const, name: "polite", handle: judgeHandle },
+        ],
       },
     });
     await t.finishAllScheduledFunctions(vi.runAllTimers);
@@ -755,20 +763,21 @@ describe("client layer (Evalbench methods)", () => {
       { input: "alpha", expectedOutput: "alpha" },
     ]);
 
-    const runId = (await t.action(
-      (targetsTest as Record<string, never>).clientStartRun,
-      { datasetId } as never,
-    )) as Id<"eval_runs">;
+    const runId = (await t.action(targetsTest.clientStartRun, {
+      datasetId,
+    })) as Id<"eval_runs">;
     await t.finishAllScheduledFunctions(vi.runAllTimers);
 
     // The stored config carries resolved handle strings, not refs.
     const summary = await t.query(api.runner.runSummary, { runId });
-    const scorers = (summary!.config as {
-      scorers: Record<string, unknown>[];
-    }).scorers;
+    const scorers = (
+      summary!.config as {
+        scorers: Record<string, unknown>[];
+      }
+    ).scorers;
     expect(typeof scorers[0].handle).toBe("string");
     expect(typeof scorers[1].embedderHandle).toBe("string");
-    expect((scorers[2].judgeHandles as string[])).toHaveLength(3);
+    expect(scorers[2].judgeHandles as string[]).toHaveLength(3);
     expect(summary).toMatchObject({ status: "completed", completedCount: 1 });
 
     const [result] = await t.query(api.runner.listResults, { runId });
@@ -780,10 +789,7 @@ describe("client layer (Evalbench methods)", () => {
 
     // The redriveRun client wrapper reaches the component (completed
     // run: nothing to do).
-    const outcome = await t.action(
-      (targetsTest as Record<string, never>).clientRedrive,
-      { runId } as never,
-    );
+    const outcome = await t.action(targetsTest.clientRedrive, { runId });
     expect(outcome).toEqual({ repended: 0, erroredOut: 0 });
   });
 });
@@ -845,9 +851,7 @@ describe("review regression cases", () => {
 
     const [result] = await t.query(api.runner.listResults, { runId });
     expect(result.scores![0].passed).toBe(false);
-    expect(
-      (result.scores![0].details as { quorum: number }).quorum,
-    ).toBe(2);
+    expect((result.scores![0].details as { quorum: number }).quorum).toBe(2);
   });
 
   test("redrive recovers a run with orphaned pending rows (no stuck running row)", async () => {

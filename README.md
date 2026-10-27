@@ -3,6 +3,14 @@
 Reactive LLM eval, tracing, and regression layer as a
 [Convex Component](https://www.convex.dev/components).
 
+The Smart Code Solutions fork is starting with dependency and adapter
+compatibility. See [metrics coverage](./docs/metrics-coverage.md) for how the AI
+metrics checklist maps to existing functionality and proposed extensions.
+Budget accounting and the full metrics checklist are not implemented by a
+dependency refresh.
+See [dependency compatibility](./docs/compatibility.md) for supported consumer
+pairs, verification scope, and the Agent 0.7.8 type-declaration patch.
+
 Capture spans from your agents, run datasets against them, score with
 built-in scorers and LLM-as-judge, and watch results stream into a
 reactive dashboard live, all inside your own Convex deployment. No

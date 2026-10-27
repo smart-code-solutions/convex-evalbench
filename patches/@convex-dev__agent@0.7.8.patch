@@ -1,0 +1,63 @@
+diff --git a/dist/vercel/index.d.ts b/dist/vercel/index.d.ts
+index 79cc7b597b09819f08e85179b39538af27281a7e..354d3e13ec5f7d8048188ea73a1bd002a10e36d6 100644
+--- a/dist/vercel/index.d.ts
++++ b/dist/vercel/index.d.ts
+@@ -57,7 +57,7 @@ export declare class Agent<
+  */
+ CustomCtx extends object = object, AgentTools extends ToolSet = any> {
+     component: AgentComponent;
+-    options: Config & {
++    options: Omit<Config, "languageModel"> & {
+         /**
+          * The name for the agent. This will be attributed on each message
+          * created by this agent.
+@@ -70,7 +70,7 @@ CustomCtx extends object = object, AgentTools extends ToolSet = any> {
+          * const myAgent = new Agent(components.agent, {
+          *   languageModel: openai.chat("gpt-4o-mini"),
+          */
+-        languageModel: LanguageModel;
++        languageModel: NonNullable<Config["languageModel"]>;
+         /**
+          * The default system prompt to put in each request.
+          * Override per-prompt by passing the "system" parameter.
+@@ -89,7 +89,7 @@ CustomCtx extends object = object, AgentTools extends ToolSet = any> {
+          */
+         stopWhen?: StopCondition<NoInfer<AgentTools>> | Array<StopCondition<NoInfer<AgentTools>>>;
+     };
+-    constructor(component: AgentComponent, options: Config & {
++    constructor(component: AgentComponent, options: Omit<Config, "languageModel"> & {
+         /**
+          * The name for the agent. This will be attributed on each message
+          * created by this agent.
+@@ -102,7 +102,7 @@ CustomCtx extends object = object, AgentTools extends ToolSet = any> {
+          * const myAgent = new Agent(components.agent, {
+          *   languageModel: openai.chat("gpt-4o-mini"),
+          */
+-        languageModel: LanguageModel;
++        languageModel: NonNullable<Config["languageModel"]>;
+         /**
+          * The default system prompt to put in each request.
+          * Override per-prompt by passing the "system" parameter.
+diff --git a/src/vercel/index.ts b/src/vercel/index.ts
+index b0eb1ef9d36845b2be987cfad339d5b6c72a019f..ddc9f13a85e346bf1d889c9889d48f27660756e8 100644
+--- a/src/vercel/index.ts
++++ b/src/vercel/index.ts
+@@ -237,7 +237,8 @@ export class Agent<
+ > {
+   constructor(
+     public component: AgentComponent,
+-    public options: Config & {
++    // shortcut: avoid intersecting SDK 7 model unions twice; remove when upstream fixes the constructor.
++    public options: Omit<Config, "languageModel"> & {
+       /**
+        * The name for the agent. This will be attributed on each message
+        * created by this agent.
+@@ -250,7 +251,7 @@ export class Agent<
+        * const myAgent = new Agent(components.agent, {
+        *   languageModel: openai.chat("gpt-4o-mini"),
+        */
+-      languageModel: LanguageModel;
++      languageModel: NonNullable<Config["languageModel"]>;
+       /**
+        * The default system prompt to put in each request.
+        * Override per-prompt by passing the "system" parameter.
