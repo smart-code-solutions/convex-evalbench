@@ -1,5 +1,9 @@
 import { v, type Infer } from "convex/values";
 
+export const tenantRetention = v.union(
+  v.object({ kind: v.literal("retained"), before: v.number() }),
+  v.object({ kind: v.literal("deleted") }),
+);
 export const taskScope = { tenantId: v.string(), useCase: v.string() };
 export const taskIdentity = { ...taskScope, taskKey: v.string() };
 export const taskStart = {

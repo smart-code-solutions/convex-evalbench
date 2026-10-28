@@ -1,6 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { taskFields, attemptFields } from "../production.js";
+import {
+  taskFields,
+  attemptFields,
+  taskIdentity,
+  tenantRetention,
+} from "../production.js";
 
 import {
   datasetItemFields,
@@ -28,7 +33,19 @@ import {
  * row that updates live as workers finalize items.
  */
 export default defineSchema({
+  production_tenants: defineTable({
+    tenantId: v.string(),
+    state: tenantRetention,
+    cleanupPending: v.boolean(),
+  }).index("by_tenant", ["tenantId"]),
+  production_deleted_tasks: defineTable({
+    ...taskIdentity,
+    cleanupPending: v.boolean(),
+  })
+    .index("by_identity", ["tenantId", "useCase", "taskKey"])
+    .index("by_tenant_pending", ["tenantId", "cleanupPending"]),
   production_tasks: defineTable(taskFields)
+    .index("by_tenant_started", ["tenantId", "startedAt"])
     .index("by_identity", ["tenantId", "useCase", "taskKey"])
     .index("by_scope_started", ["tenantId", "useCase", "startedAt"]),
   production_attempts: defineTable(attemptFields)

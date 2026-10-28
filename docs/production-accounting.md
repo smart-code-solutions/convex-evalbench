@@ -8,7 +8,7 @@ traces and evaluation batches. **The upstream unscoped npm package does not cont
 Use Node 22+ and install the scoped prerelease:
 
 ```sh
-npm install @smart-code-solutions/convex-evalbench@0.4.0-alpha.0
+npm install @smart-code-solutions/convex-evalbench@0.4.0-alpha.1
 ```
 
 The package includes the Convex component and server SDK. No separate service or
@@ -179,8 +179,55 @@ The proof uses admin authentication against the owned localhost backend,
 synthetic IDs and deterministic receipts, checking rollback, replay and live
 query updates. Unit/transaction tests run with `corepack pnpm test`.
 
-Production accounting has **no retention/deletion API yet**; `pruneTraces` only
-prunes spans. Keep this pilot on local/synthetic data until deletion and late-write
-fencing are integrated. Tools, retrieval/eval scores, feedback, guardrails,
-token-level ITL, stream chunk timing and context utilization are not automatic.
-See the [full checklist mapping](metrics-coverage.md).
+## Retention and deletion
+
+Use these calls from an authorized host mutation (or internal maintenance function):
+
+```ts
+await tasks.deleteTask(ctx, { tenantId, useCase: "resident-ask", taskKey });
+await tasks.pruneTenant(ctx, {
+  tenantId,
+  before: Date.now() - 30 * 24 * 60 * 60 * 1000,
+});
+await tasks.deleteTenant(ctx, { tenantId });
+```
+
+Each returns `{ complete: boolean }`: visibility is removed in the initiating
+transaction, while `complete` reports physical cleanup. Repeat the same command
+to check completion or restart failed cleanup. Cleanup deletes at most 100
+attempts/rows per job; retention visits at most 25 old tasks per job and drains
+their child batches. The component schedules its own finite cleanup work. The
+host selects retention duration/cadence (for example, invoke `pruneTenant` from
+its existing daily maintenance); no automatic retention window is imposed.
+
+Retention is measured from **task start**, including old running tasks, with an
+exclusive `startedAt < before` cutoff. The cutoff cannot move backward or into
+the future. All reads, pagination and summaries apply it immediately. Retrying
+an expired start establishes a task fence even if no task was originally stored.
+A conflicting old timestamp for a still-retained task remains an error and
+cannot erase it.
+
+Task deletion permanently reserves its `(tenantId, useCase, taskKey)` identity.
+A minimal tombstone stores only those opaque keys and cleanup status, never
+model/receipt/content data. Tenant deletion is terminal and removes its task
+fences after retaining a minimal tenant fence. Tenant policy/fences are not
+pruned: without a bound on delayed retries, expiring them would permit
+resurrection. Use genuinely fresh IDs for new work; there is no reset/undelete.
+Do not downgrade deployed component code to a version without these guards.
+
+Starts for fenced identities return `created: false`; finishes, unknown marks
+and late receipt refinements safely no-op. This preserves the existing response
+contracts and lets sibling Budget settlement commit after deleting its metrics.
+Unfenced missing/conflicting records still fail strictly. Fences and writes are
+checked in the same transaction, including cleanup races.
+
+These APIs cover **production tasks and attempts** only. Existing trace pruning
+is `pruneTraces`; datasets/evaluations, host Budget receipts and application
+records retain their own lifecycles. Deleting observations does not delete the
+host's canonical billing ledger. Keep authorization in the host: never expose
+an unscoped lifecycle mutation directly to the browser. Components isolate data,
+not the application's tenant permission policy.
+
+Tools, retrieval/eval scores, feedback, guardrails, token-level ITL, stream chunk
+timing and context utilization are not automatic. See the
+[full checklist mapping](metrics-coverage.md).

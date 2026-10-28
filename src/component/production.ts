@@ -2,6 +2,12 @@ import { paginationOptsValidator, type PaginationOptions } from "convex/server";
 import { v } from "convex/values";
 import { paginator } from "convex-helpers/server/pagination";
 import schema from "./schema.js";
+import {
+  taskClosed,
+  closeTask,
+  tenantPolicy,
+  storedTask,
+} from "./productionLifecycle.js";
 import { mutation, query, type QueryCtx } from "./_generated/server.js";
 import {
   taskIdentity,
@@ -30,15 +36,8 @@ async function findTask(
   ctx: QueryCtx,
   args: { tenantId: string; useCase: string; taskKey: string },
 ) {
-  return ctx.db
-    .query("production_tasks")
-    .withIndex("by_identity", (q) =>
-      q
-        .eq("tenantId", args.tenantId)
-        .eq("useCase", args.useCase)
-        .eq("taskKey", args.taskKey),
-    )
-    .unique();
+  const row = await storedTask(ctx, args);
+  return row && !(await taskClosed(ctx, args, row.startedAt)) ? row : null;
 }
 async function requireTask(
   ctx: QueryCtx,
@@ -85,7 +84,11 @@ export const startTask = mutation({
   handler: async (ctx, args) => {
     validateKeys(args);
     nonnegative(args.startedAt, "startedAt");
-    const row = await findTask(ctx, args);
+    const row = await storedTask(ctx, args);
+    if (await taskClosed(ctx, args, row?.startedAt ?? args.startedAt)) {
+      await closeTask(ctx, args);
+      return { created: false };
+    }
     if (row) {
       if (row.startedAt !== args.startedAt || row.version !== args.version)
         throw new Error("Conflicting task start");
@@ -107,6 +110,7 @@ export const finishTask = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    if (await taskClosed(ctx, args)) return null;
     const row = await requireTask(ctx, args);
     nonnegative(args.finishedAt, "finishedAt");
     if (args.finishedAt < row.startedAt)
@@ -129,6 +133,7 @@ export const startAttempt = mutation({
   handler: async (ctx, args) => {
     validateKeys(args);
     nonnegative(args.startedAt, "startedAt");
+    if (await taskClosed(ctx, args)) return { created: false };
     const task = await requireTask(ctx, args);
     if (args.startedAt < task.startedAt)
       throw new Error("Attempt precedes task");
@@ -164,6 +169,7 @@ export const markAttemptUnknown = mutation({
   args: attemptIdentity,
   returns: v.null(),
   handler: async (ctx, args) => {
+    if (await taskClosed(ctx, args)) return null;
     const row = await requireAttempt(ctx, args);
     if (row.state.kind === "pending")
       await ctx.db.patch("production_attempts", row._id, {
@@ -176,6 +182,7 @@ export const finishAttempt = mutation({
   args: { ...attemptIdentity, receipt: attemptReceipt },
   returns: v.null(),
   handler: async (ctx, args) => {
+    if (await taskClosed(ctx, args)) return null;
     const row = await requireAttempt(ctx, args);
     validateReceipt(args.receipt, row.startedAt);
     const receipt =
@@ -202,10 +209,17 @@ export const listTasks = query({
   }),
   handler: async (ctx, args) => {
     validatePage(args.paginationOpts);
+    const policy = await tenantPolicy(ctx, args.tenantId);
+    if (policy?.state.kind === "deleted")
+      return { page: [], isDone: true, continueCursor: "" };
+    const cutoff = policy?.state.kind === "retained" ? policy.state.before : 0;
     const { page, isDone, continueCursor } = await paginator(ctx.db, schema)
       .query("production_tasks")
       .withIndex("by_scope_started", (q) =>
-        q.eq("tenantId", args.tenantId).eq("useCase", args.useCase),
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("useCase", args.useCase)
+          .gte("startedAt", cutoff),
       )
       .order("desc")
       .paginate(args.paginationOpts);
@@ -221,6 +235,8 @@ export const listAttempts = query({
   }),
   handler: async (ctx, args) => {
     validatePage(args.paginationOpts);
+    if (await taskClosed(ctx, args))
+      return { page: [], isDone: true, continueCursor: "" };
     const { page, isDone, continueCursor } = await paginator(ctx.db, schema)
       .query("production_attempts")
       .withIndex("by_task_started", (q) =>
@@ -243,17 +259,22 @@ export const summarizeTasks = query({
     nonnegative(args.from, "from");
     nonnegative(args.to, "to");
     if (args.to <= args.from) throw new Error("Invalid time range");
-    const rows = await ctx.db
-      .query("production_tasks")
-      .withIndex("by_scope_started", (q) =>
-        q
-          .eq("tenantId", args.tenantId)
-          .eq("useCase", args.useCase)
-          .gte("startedAt", args.from)
-          .lt("startedAt", args.to),
-      )
-      .order("desc")
-      .take(51);
+    const policy = await tenantPolicy(ctx, args.tenantId);
+    const cutoff = policy?.state.kind === "retained" ? policy.state.before : 0;
+    const rows =
+      policy?.state.kind === "deleted" || args.to <= cutoff
+        ? []
+        : await ctx.db
+            .query("production_tasks")
+            .withIndex("by_scope_started", (q) =>
+              q
+                .eq("tenantId", args.tenantId)
+                .eq("useCase", args.useCase)
+                .gte("startedAt", Math.max(args.from, cutoff))
+                .lt("startedAt", args.to),
+            )
+            .order("desc")
+            .take(51);
     const tasks = rows.slice(0, 50);
     let finishedTasks = 0,
       successfulTasks = 0,
