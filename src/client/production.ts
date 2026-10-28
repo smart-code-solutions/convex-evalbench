@@ -8,6 +8,30 @@ type Functions = ComponentApi["production"];
 export class ProductionTasks {
   constructor(private component: ComponentApi) {}
 
+  deleteTask(
+    ctx: RunMutationCtx,
+    args: FunctionArgs<ComponentApi["productionLifecycle"]["deleteTask"]>,
+  ) {
+    return ctx.runMutation(this.component.productionLifecycle.deleteTask, args);
+  }
+  deleteTenant(
+    ctx: RunMutationCtx,
+    args: FunctionArgs<ComponentApi["productionLifecycle"]["deleteTenant"]>,
+  ) {
+    return ctx.runMutation(
+      this.component.productionLifecycle.deleteTenant,
+      args,
+    );
+  }
+  pruneTenant(
+    ctx: RunMutationCtx,
+    args: FunctionArgs<ComponentApi["productionLifecycle"]["pruneTenant"]>,
+  ) {
+    return ctx.runMutation(
+      this.component.productionLifecycle.pruneTenant,
+      args,
+    );
+  }
   startTask(ctx: RunMutationCtx, args: FunctionArgs<Functions["startTask"]>) {
     return ctx.runMutation(this.component.production.startTask, args);
   }

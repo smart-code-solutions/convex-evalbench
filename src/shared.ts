@@ -8,7 +8,7 @@
 import { ConvexError, v } from "convex/values";
 import type { Infer } from "convex/values";
 
-export const EVALBENCH_VERSION = "0.4.0-alpha.0";
+export const EVALBENCH_VERSION = "0.4.0-alpha.1";
 
 /** True when `value` contains at least one non-whitespace character. */
 export function isNonEmptyString(value: string): boolean {

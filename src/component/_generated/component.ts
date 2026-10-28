@@ -644,6 +644,29 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         Name
       >;
     };
+    productionLifecycle: {
+      deleteTask: FunctionReference<
+        "mutation",
+        "internal",
+        { taskKey: string; tenantId: string; useCase: string },
+        { complete: boolean },
+        Name
+      >;
+      deleteTenant: FunctionReference<
+        "mutation",
+        "internal",
+        { tenantId: string },
+        { complete: boolean },
+        Name
+      >;
+      pruneTenant: FunctionReference<
+        "mutation",
+        "internal",
+        { before: number; tenantId: string },
+        { complete: boolean },
+        Name
+      >;
+    };
     queries: {
       recentTraces: FunctionReference<
         "query",

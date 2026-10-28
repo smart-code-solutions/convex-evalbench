@@ -12,6 +12,7 @@ import type * as compare from "../compare.js";
 import type * as datasets from "../datasets.js";
 import type * as ingestion from "../ingestion.js";
 import type * as production from "../production.js";
+import type * as productionLifecycle from "../productionLifecycle.js";
 import type * as queries from "../queries.js";
 import type * as runner from "../runner.js";
 
@@ -27,6 +28,7 @@ const fullApi: ApiFromModules<{
   datasets: typeof datasets;
   ingestion: typeof ingestion;
   production: typeof production;
+  productionLifecycle: typeof productionLifecycle;
   queries: typeof queries;
   runner: typeof runner;
 }> = anyApi as any;

@@ -5,15 +5,16 @@ Reactive LLM eval, tracing, and regression layer as a
 
 This is the Smart Code Solutions fork of
 [Thorben Fohlmeister's Evalbench](https://github.com/tfohlmeister/convex-evalbench),
-released under the original Apache-2.0 license. The `0.4.0-alpha.0` prerelease adds
+released under the original Apache-2.0 license. The `0.4.0-alpha.1` prerelease adds
 [production accounting](./docs/production-accounting.md): task/attempt identity,
 strict replay-safe receipts, sibling AI Budget transaction composition, and
 bounded reactive summaries. The upstream unscoped npm package does not contain
 these additions.
 
-**Alpha limit:** production task accounting has no retention/deletion API or
-late-write fencing yet. Use synthetic data until those are integrated; installing
-this package does not automatically instrument provider calls or evaluate quality.
+Production accounting includes [retention, deletion and late-write fencing](./docs/production-accounting.md#retention-and-deletion).
+The host chooses its retention cadence and authorizes deletion; minimal opaque
+fences persist to prevent resurrection. Installing this alpha does not automatically
+instrument provider calls or evaluate quality.
 
 See [metrics coverage](./docs/metrics-coverage.md) for the remaining checklist.
 See [dependency compatibility](./docs/compatibility.md) for supported consumer
